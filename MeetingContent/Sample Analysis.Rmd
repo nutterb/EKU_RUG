@@ -1,0 +1,40 @@
+---
+title: "Analyzing Breaks in Yarn by Tension"
+output: html_document
+---
+
+```{r}
+library(broom)
+library(pixiedust)
+```
+
+```{r}
+data(warpbreaks)
+
+fit <- lm(breaks ~ wool + tension, data = warpbreaks)
+
+tidy(fit)
+
+dust(fit) %>%
+  sprinkle(pad = 6) %>%
+  sprinkle(cols = 2:4, round = 3) %>%
+  sprinkle(cols = 5, fn = quote(pvalString(value))) %>%
+  sprinkle(rows = 1, border = "top") %>%
+  sprinkle(rows = 4, border = "bottom") %>%
+  sprinkle_colnames("Term", "Estimate", "Std. Err.", "T", "P-value") %>%
+  sprinkle_print_method("html")
+```
+
+```{r}
+fit_anova <- aov(breaks ~ wool + tension, data = warpbreaks)
+tidy(fit_anova)
+```
+
+But I wonder, is there an interaction between wool and tension?
+
+```{r}
+fit_interaction <- aov(breaks ~ wool * tension, data = warpbreaks)
+tidy(fit_interaction)
+
+anova(fit_anova, fit_interaction)
+```
