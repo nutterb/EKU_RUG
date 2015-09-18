@@ -1,9 +1,12 @@
 ---
 title: "Analyzing Breaks in Yarn by Tension"
-output: word_document
+output: html_document
 ---
 
-```{r}
+```{r} 
+#* See http://yihui.name/knitr/options/ for 
+#* a list of all chunk options.
+
 library(dplyr)
 library(broom)
 library(pixiedust)
@@ -20,7 +23,7 @@ The `warpbreaks` dataset, available in the `datasets` package, is a data frame w
 
 For the purpose of our demonstration, we are going to select only the first six observations at each combination as our initial data set.  We will then introduce the remaining three observations at each combination as if they had been collected after the first analysis.
 
-```{r}
+```{r, echo=FALSE}
 #* Note: Let me apologize here.  The code that follows 
 #* is a little bit ahead of ourselves and I won't spend 
 #* a lot of time explaining it in this demonstration.  
@@ -37,11 +40,11 @@ Final_Breaks <- warpbreaks %>%
   ungroup()
 ```
 
-```{r}
+```{r, echo = FALSE}
 #* At first is might seem strange to make a copy of the 
 #* data here.  Hopefully we'll see the value of this later
 #* in the demonstration
-Breaks <- Initial_Breaks
+Breaks <- Final_Breaks
 ```
 
 _From this point on, we'll assume we're performing the analysis as if we didn't know there was more data coming later._
@@ -50,7 +53,7 @@ _From this point on, we'll assume we're performing the analysis as if we didn't 
 
 The data were gathered in a balanced design with `r max(Breaks$observation_number)` observations per `wool-tension` group.  A total of `r nrow(Breaks)` observations were made.  A summary of the number of breaks in each group is provided in the table below.
 
-```{r}
+```{r, echo=FALSE, warning = FALSE}
 Breaks %>%
     group_by(wool, tension) %>%
     summarise(Mean = mean(breaks),
@@ -60,12 +63,18 @@ Breaks %>%
               Median = median(breaks),
              P75 = quantile(breaks, probs = .75),
               Max = max(breaks)) %>%
-  as.data.frame() 
+  as.data.frame() %>%
+  dust() %>%
+  sprinkle(cols = 3:4, round = 2) %>%
+  sprinkle(pad = 7) %>%
+  sprinkle(rows = 1, border = "top") %>%
+  sprinkle_colnames(wool = "Wool", tension = "Tension") %>%
+  sprinkle_print_method("html")
 ```
 
 And a few plots for the number of breaks by group
 
-```{r}
+```{r, echo = FALSE, message = FALSE}
 ggplot(Breaks,
        aes(x = observation_number,
            y = breaks,
@@ -88,12 +97,20 @@ ggplot(Breaks,
 # Analysis
 To evaluate the effect of wool and tension on the number of breaks observed, we perform an analysis of variance to see if there are differences between groups.
 
-```{r}
+```{r, echo=1, warning = FALSE}
 fit <- aov(breaks ~ wool + tension, data = Breaks)
-(results <- tidy(fit))
+results <- tidy(fit)
+
+dust(fit) %>%
+  sprinkle(cols = 3:5, round = 2) %>%
+  sprinkle(cols = 6, fn = quote(pvalString(value))) %>%
+  sprinkle(rows = 1, border = "top") %>%
+  sprinkle(pad = 7, na_string = "") %>%
+  sprinkle_colnames("Term", "DF", "SS", "MS", "F", "P-value") %>%
+  sprinkle_print_method("html")
 ```
 
-```{r}
+```{r, eval = FALSE}
 #* Check the model diagnostics
 par(mfrow=c(2, 2))
 plot(fit)
@@ -101,8 +118,22 @@ plot(fit)
 
 An ordinary least squares / linear regression model provides us with estimates of the change in breaks between levels of the tension variable.
 
-```{r}
-(lm_result <- tidy(lm(fit)))
+```{r, echo = 1, warning = FALSE}
+lm_result <- tidy(lm(fit))
+dust(lm(fit), 
+     descriptors = c("term_plain", "level_detail"),
+     glance_foot = TRUE,
+     glance_stats = c("adj.r.squared", "df", "AIC")) %>%
+  #* Format the body of the table
+  sprinkle(cols = 3:5, round = 2, halign = "r") %>%
+  sprinkle(cols = 6, fn = quote(pvalString(value)), halign = "r") %>%
+  sprinkle(pad = 7) %>%
+  sprinkle(rows = 1, border = "top") %>%
+  sprinkle_colnames("Term", "Level", "Estimate", "Std. Error", "T", "P-value") %>%
+  #* Format the foot
+  sprinkle(round = 2, part = "foot", na_string = "") %>%
+  sprinkle(rows = 1, border = "top", part = "foot") %>%
+  sprinkle_print_method("html")
 ```
 
 # Conclusions

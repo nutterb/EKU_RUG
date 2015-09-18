@@ -134,4 +134,18 @@ R markdown has almost no learning curve at all
 - Parallel computing
 - Database interfacing
 
+## Reproducible Research Demonstration
+
+- Initial Document.  
+>-   Cool, right?
+
+## Reproducible Research Demonstration
+
+- But would you want to publish that analysis in it's current appearance?
+>- Let's clean it up a little?
+
+## Reproducible Research Demonstration
+
+- Oh no!  We just came across new data!  Now we have to rewrite **everything**
+>- Or just get the right data in and run it again.
 
