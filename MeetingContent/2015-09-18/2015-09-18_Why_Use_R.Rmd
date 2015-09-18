@@ -53,12 +53,12 @@ graph TB
 
 ## Let Me Tell You Why I Think You Should Use `R`
 
->- Open Source
->- Extensively Peer Reviewed (with caveats)
->- Object Oriented
->- Reproducibility Tools
->- Bleeding Edge Methodologies
->- Community
+- Open Source
+- Extensively Peer Reviewed (with caveats)
+- Object Oriented
+- Reproducibility Tools
+- Bleeding Edge Methodologies
+- Community
 
 ## Open Source
 
@@ -99,11 +99,11 @@ R markdown has almost no learning curve at all
 
 - A package exists for **everything**
 
-> What if I can't find a package that does my analysis?
+What if I can't find a package that does my analysis?
 
 >- Wait a couple months
 
-> What if I still can't find a package that does my analysis?
+What if I still can't find a package that does my analysis?
 
 >- It's a novel idea: PUBLISH!
 
@@ -136,16 +136,16 @@ R markdown has almost no learning curve at all
 
 ## Reproducible Research Demonstration
 
-- Initial Document.  
+>- Initial Document.  
 >-   Cool, right?
 
 ## Reproducible Research Demonstration
 
-- But would you want to publish that analysis in it's current appearance?
+>- But would you want to publish that analysis in it's current appearance?
 >- Let's clean it up a little?
 
 ## Reproducible Research Demonstration
 
-- Oh no!  We just came across new data!  Now we have to rewrite **everything**
+>- Oh no!  We just came across new data!  Now we have to rewrite **everything**
 >- Or just get the right data in and run it again.
 
