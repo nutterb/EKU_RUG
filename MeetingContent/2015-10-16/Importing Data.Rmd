@@ -1,0 +1,245 @@
+---
+title: "Importing Data"
+author: "Benjamin Nutter"
+date: "October 16, 2015"
+output: html_document
+---
+
+For the duration of this demonstration, we will be using [this GitHub repository](https://github.com/nutterb/EKU_RUG).  
+
+1. Click on the "Download ZIP" button
+2. Unzip the folder to your computer.
+3. Open R Studio
+4. Open a New Project and navigate to the `.Rproj` file in the unzipped repository folder
+
+The packages we will use in this demonstration are
+
+* `microbenchmark` (for testing speed)
+* `dplyr`
+* `readr`
+* `readxl`
+* `gdata`
+* `sas7bdat`
+* `googlesheets`
+* `RODBC`
+
+
+
+For convenience, we will define the variable `DEMODIR` to make it easier to navigate to our data files for this demonstration
+
+```{r}
+DEMODIR <- "MeetingContent/2015-10-16"
+```
+
+
+## Unzipping the data file
+
+The data for this demonstration are in a `.zip` file in `~/MeetingContent/2015-10-16/data.zip`.  You may either unzip this manually, or you may unzip it from R.
+
+```{r}
+unzip(file.path(DEMODIR, "data.zip"),
+      exdir = file.path(DEMODIR, "data"))
+```
+
+## MLB Data
+
+The bread-and-butter of your data import will most likely be `read.csv`.  This is the standard R function that comes in the base installation.  It's chief advantages are that it requires no external packages and has a very easy-to-remember name.  It does have a couple of limitations, primarily, it can be slow and it uses the default option of `stringsAsFactors = TRUE`, which can occasionally come around to bite us.  But for the most part, it's a reliable tool for reading your comma separated files into R.
+
+```{r}
+MLB <- read.csv(file.path(DEMODIR, "data/MLB2008.csv"))
+```
+
+Okay, that was easy enough.  Nothing to be scared of, right?
+
+## Sacramento Real Estate Sales
+
+Let's read in the Sacramento Real Estate Sales data and explore some of the features.  The standard call is:
+
+```{r}
+Sales <- read.csv(file.path(DEMODIR, "data/Sacramentorealestatetransactions.csv"))
+```
+
+Now look at the third row of the data and notice that some of the values are "N/A" and "Not Available".  We would like for these to be missing values.  In order to convert them during the data import, we can modify our call to `read.csv`.
+
+```{r}
+Sales <- read.csv(file.path(DEMODIR, "data/Sacramentorealestatetransactions.csv"),
+                  na = c("", "NA", "N/A", "Not Available"))
+```
+
+Now that we have the missing values squared away, let's look at that date column.
+
+```{r}
+head(Sales$sale_date)
+class(Sales$sale_date)
+```
+
+Dates don't do us much good in this format; they won't necessarily be sorted or plotted in the right order.  We could convert it at this point by "mutating" the variable.
+
+```{r}
+Sales <- Sales %>%
+  mutate(sale_date = as.character(sale_date),
+         sale_date = sub(" EDT", "", sale_date),
+         sale_date = as.Date(sale_date,
+                             format = "%a %B %d %H:%M:%S %Y"))
+```
+
+We can avoid the `as.character` conversion if we use the `stringsAsFactors = FALSE` option.
+
+```{r}
+Sales <- read.csv(file.path(DEMODIR, "data/Sacramentorealestatetransactions.csv"),
+                  na = c("", "NA", "N/A", "Not Available"),
+                  stringsAsFactors = FALSE)
+
+
+```{r}
+Sales <- read.csv(file.path(DEMODIR, "data/Sacramentorealestatetransactions.csv"),
+                  na = c("", "NA", "N/A", "Not Available"),
+                  colClasses = c(street = "character",
+                                 city = "character",
+                                 zip = "character",
+                                 state = "character",
+                                 beds = "numeric",
+                                 bath = "numeric",
+                                 sq__ft = "numeric",
+                                 type = "factor",
+                                 sale_date = "character",
+                                 price = "numeric",
+                                 latitude = "numeric",
+                                 longitude = "numeric")) %>%
+  mutate(sale_date = sub(" EDT", "", sale_date),
+         sale_date = as.Date(sale_date,
+                             format = "%a %B %d %H:%M:%S %Y"))
+```
+
+NOTE: You don't have to specify every column in the data set.  You can specify column classes for just the variables you want to specify a class.
+
+But now the real question: Why both specifying the column classes anyway?
+
+Let's take a look at speed:
+
+```{r}
+library(microbenchmark)
+microbenchmark(
+  plain = read.csv(file.path(DEMODIR, "data/Sacramentorealestatetransactions.csv"),
+                  na = c("", "NA", "N/A", "Not Available")),
+  all_col_classes = read.csv(file.path(DEMODIR, "data/Sacramentorealestatetransactions.csv"),
+                  na = c("", "NA", "N/A", "Not Available"),
+                  colClasses = c(street = "character",
+                                 city = "character",
+                                 zip = "character",
+                                 state = "character",
+                                 beds = "numeric",
+                                 bath = "numeric",
+                                 sq__ft = "numeric",
+                                 type = "factor",
+                                 sale_date = "character",
+                                 price = "numeric",
+                                 latitude = "numeric",
+                                 longitude = "numeric")),
+  some_col_classes = read.csv(file.path(DEMODIR, "data/Sacramentorealestatetransactions.csv"),
+                  na = c("", "NA", "N/A", "Not Available"),
+                  colClasses = c(street = "character",
+                                 city = "character",
+                                 zip = "character",
+                                 state = "character",
+                                 sale_date = "character")),
+  no_factors = read.csv(file.path(DEMODIR, "data/Sacramentorealestatetransactions.csv"),
+                  na = c("", "NA", "N/A", "Not Available"),
+                  stringsAsFactors = FALSE)
+)
+```
+
+So the real benefit to specifying your column classes is speed.
+
+For small data sets (< 1 GB) you probably won't notice the difference in speed.  In fact, you will likely lose more time specifying your column classes than you gained in reading the data.  This approach is best suited in situations where the data format is predictable and will be read in repeatedly (scheduled reports, etc).
+
+For smaller data sets, you gain a lot more speed by specifying `stringsAsFactors = FALSE` and only providing colClasses for the variables that you want to be factors.
+
+## The `readr` package
+
+For the `readr` package, we'll use the file `SalesJan2009.txt`, which is a tab delimited file.  Some of the features of the `readr` package are that it doesn't have a `stringsAsFactors` argument, and assumes that you want strings to be character variables, and not factors.  You can use the `col_types` argument to force variables to factors, when desired.
+
+```{r}
+Sales2009 <- read_delim(file.path(DEMODIR, "data/SalesJan2009.txt"),
+                        delim = "\t")
+
+sapply(Sales2009, class)
+```
+
+Let's compare speeds between `read.csv` and the `readr` package.
+
+```{r}
+microbenchmark(
+  baseR = read.csv(file.path(DEMODIR, "data/SalesJan2009.txt"),
+                   sep = "\t",
+                   stringsAsFactors = FALSE),
+  readr = read_delim(file.path(DEMODIR, "data/SalesJan2009.txt"),
+                     delim = "\t")
+)
+```
+
+As you can see, `readr` functions can be about twice as fast as the base R functions.  
+
+## Reading Excel files
+
+Perhaps the easiest way to read in an Excel file is with the `readxl` package.  This is a fairly new package and is still being developed.  The main advantages: It is written by the same person who wrote `readr`, and behaves the same way.  It also works as-is, without requiring additional software.
+
+```{r}
+library(readxl)
+School <- read_excel(file.path(DEMODIR, "data/schoolprimarydistances.xlsx"))
+```
+
+Piece of cake!  With one disadvantage.  Look at the column names for `School`
+
+```{r}
+names(School)
+```
+
+`read_excel` preserves the white space in the column names, which makes them very hard to work with in R.  Hopefully there will be a way around this in future versions, so keep your eye out for updates.
+
+There are two ways we can deal with this inconvenience.  We can rename the columns:
+
+```{r}
+names(School) <- gsub("(\r\n| )", "_", names(School))
+names(School)
+```
+
+The `gdata` package offers functionality to read Excel files, but it requires additional software (Perl, for instance).  
+
+## Reading SAS Data Sets
+
+For SAS data sets created on Windows systems, (little endian systems), the `sas7bdat` package is extremely useful.
+
+```{r}
+unzip(file.path(DEMODIR, "data/f95sas.zip"),
+      exdir = file.path(DEMODIR, "data/f95sas"))
+                     
+library(sas7bdat)
+SAS <- read.sas7bdat(file.path(DEMODIR, "data/f95sas/f95sas/frss95.sas7bdat"))
+```
+
+These data are all numeric.  The SAS Formats are in a different file, which, in this case, makes this of limited use and we may still be required to do a great deal of work to apply all those formats.
+
+```{r}
+Formats <- read.sas7bdat(file.path(DEMODIR, "data/f95sas/f95sas/formats.sas7bdat"))
+```
+
+There really isn't a good way to approach this other than brute force.  If this is a situation you find yourself in, feel free to contact me and I can help.
+
+## Google Spreadsheets
+
+```{r}
+library(googlesheets)
+sheet <- gs_url("https://docs.google.com/spreadsheets/d/1XSBWLQKtTk3R2WSinxGKBP8X1EN2NfG2IH7U8PKkhBM/edit#gid=0")
+
+BirthRates <- gs_read(sheet)
+```
+
+## Open DataBase Connection (ODBC)
+
+For this demonstration, we'll open a connection to an Access Database, but the same concepts can be applied to mySQL, SQLLite, SQL Server, Oracle databases, etc.
+
+```{r}
+library(RODBC)
+access <- odbcConnectAccess2007(file.path(DEMODIR, "data/ProfsrFinancial.accdb"))
+```
