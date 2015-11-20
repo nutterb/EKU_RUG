@@ -1,0 +1,22 @@
+---
+title: "Grammar of Data Manipulation"
+author: Benjamin Nutter
+date: 20 November, 2015
+output: ioslides_presentation
+---
+
+## `dplyr` Verbs
+
+* `mutate` (returns one row to one row)
+* `summarise` (returns one row to group)
+* `select` (column filtering; akin to SQL SELECT)
+* `filter` (row filtering; akin to SQL WHERE)
+* `group_by`
+* `ungroup`
+* `rename`
+* `arrange`
+
+## `tidyr` Verbs
+
+* `gather` (from wide to long)
+* `spread` (from long to wide)

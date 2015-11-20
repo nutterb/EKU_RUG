@@ -1,0 +1,154 @@
+---
+title: "Piped Operations (the Composition of Functions)"
+author: Benjamin Nutter
+date: 20 November, 2015
+output: ioslides_presentation
+---
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(magrittr)
+```
+
+## Performing Complex Operations
+
+Question:
+
+How do we translate $g \circ f (x) = g(f(x))$ into code?
+
+## Quick Disclaimer:
+
+These slide use the functions `subtract`, `divide`, and `power`, which are custom aliases for `-`, `/`, and `^`, respectively.  They are defined here for convenience of instruction.
+
+```{r}
+subtract <- function(x, y){ 
+  x - y 
+}
+
+divide <- function(x, y) {
+  x / y
+}
+
+power <- function(x, y) {
+  x ^ y
+}
+```
+
+## Examples
+
+The following code snippets all do the same calculation.  
+Can you identify it?  
+Which is easiest to read?
+
+## Examples
+```{r}
+a <- rnorm(100, 50, 15)
+
+solution <- a - mean(a)
+solution <- sum(a)
+solution <- solution^2
+solution <- solution / (length(a) - 1)
+solution <- sqrt(solution)
+
+solution <- sqrt(sum((a - mean(a))^2) / (length(a) - 1))
+
+solution <- a %>%
+  subtract(mean(a)) %>%
+  power(2) %>%
+  sum() %>%
+  divide(length(a) - 1) %>%
+  sqrt()
+```
+
+## Answer
+
+$$\sqrt{\frac{\sum\limits_{i=1}^{n}(x_i - \bar{x})^2}{n-1}}$$
+
+Which one looked easiest to you?
+
+## Pipes Vs. Step-by-Step
+```{r}
+a <- rnorm(100, 50, 15)
+
+solution <- a - mean(a)
+solution <- sum(a)
+solution <- solution^2
+solution <- solution / (length(a) - 1)
+solution <- sqrt(solution)
+
+solution <- a %>%
+  subtract(mean(a)) %>%
+  power(2) %>%
+  sum() %>%
+  divide(length(a) - 1) %>%
+  sqrt()
+```
+
+## Pipes vs. Nested Functions
+```{r}
+solution <- sqrt(sum((a - mean(a))^2) / (length(a) - 1))
+
+solution <- a %>%
+  subtract(mean(a)) %>%
+  power(2) %>%
+  sum() %>%
+  divide(length(a) - 1) %>%
+  sqrt()
+```
+
+## The Crash Course in Piping
+
+The fully specified form of a pipe is
+
+```{r}
+solution <- a %>%
+  subtract(., mean(a)) %>%
+  power(., 2) %>%
+  sum(.) %>%
+  divide(., length(a) - 1) %>%
+  sqrt(.)
+```
+
+Notice all of those dots!
+
+## The Crash Course in Piping
+
+The `.` is a place holder in the pipe representing "The result from the previous command"
+
+```{r}
+solution <- a %>%
+  subtract(., mean(a)) %>%
+  power(., 2) %>%
+  sum(.) %>%
+  divide(., length(a) - 1) %>%
+  sqrt(.)
+```
+
+## The Crash Course in Piping
+
+When the result of the previous command will go in the first argument of the subsequent command, the `.` is optional.
+
+```{r}
+solution <- a %>%
+  subtract(mean(a)) %>%
+  power(2) %>%
+  sum() %>%
+  divide(length(a) - 1) %>%
+  sqrt()
+```
+
+## The Crash Course in Piping
+
+When the result of the previous command will go into any other argument of the subsequent command, the dot is mandatory.
+
+Compare
+
+```{r}
+a <- 50
+
+a %>%
+  subtract(25)
+
+a %>%
+  subtract(25, .)
+```
+
