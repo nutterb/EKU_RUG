@@ -1,0 +1,42 @@
+---
+title: "Rmarkdown Sample 1"
+author: "EKU R Users Group"
+date: "January 20, 2016"
+output: html_document
+---
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+An Rmarkdown file consists of three types of blocks. These are
+
+1. The YAML header (Yet Another Markup Language)
+2. Markdown (Document text)
+3. Code chunks
+
+## The YAML header
+
+The YAML header is delineated is contained within two lines of dahses
+
+```
+---
+
+---
+```
+
+It is used to apply settings that set up the appearance and format of the document. 
+
+## Markdown
+
+Markdown provides the narrative part of the document.
+
+> Markdown is a lightweight markup language with plain text formatting syntax designed so that it can be converted to HTML and many other formats using a tool by the same name. [Wikipedia reference](https://en.wikipedia.org/wiki/Markdown)
+
+For the most part, your markdown will probably look like text you might type into a word processor. You can still designate _italic_ and **bold** text, as well as including links, images, tables, etc using a plain text syntax that can be rendered into multiple formats.
+
+## Code Chunks
+
+R Code chunks can be included in an Rmarkdown document by designating the chunk with backticks.  The first set of backticks has an options block `{r, [...]}` appended to it.
+
+```{r, echo = TRUE, eval = TRUE}
+mean(rnorm(100, mean = 0, sd = 1))
+```

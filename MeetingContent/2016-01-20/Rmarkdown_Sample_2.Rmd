@@ -1,0 +1,74 @@
+---
+title: "Markdown Syntax and Functionality"
+author: "EKU R Users Group"
+date: "January 20, 2016"
+output:
+  word_document: null
+  html_document:
+    toc: yes
+---
+
+For most purposes, the basic YAML header is enough to get started with, so we'll begin by focusing on what you can do with markdown itself.  R Studio maintains a cheatsheet of the markdown syntax recognized by the `rmarkdown` package at https://www.rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf.
+
+If you are using R Studio, you can also find this content using the question mark to the left of the 'Knit` button at the top of the editor.
+
+Perhaps the most common thing you'll use in markdown is the header.  Headers delineate chapters, sections, paragraphs, etc.  They are simple to apply, requiring only somewhere between one and five `#` characters to specify at what level the section is.  
+
+# Heading 1
+
+## Heading 2
+
+### Heading 3
+
+#### Heading 4
+
+##### Heading 5
+
+## Writing Text
+
+For the most part, writing in Rmarkdown isn't much different than writing in a word processor.  The major difference is that the word processor abstracts and executes the code to render the appearance of text in real time.  In markdown, we have to provide instructions to the rendering engine on the appearance of text ourselves.  
+
+For the most part, this is fairly straight forward.  Italics can be produced by wrapping words in `_` (underscore) characters. For example, _let's italicize this phrase_.
+
+Similarly, **bold text** is obtained by wrapping text between double asterisks (`**`).
+
+Superscripts are generated using the `^` character: x^2^
+
+Subscripts are generated using the `~` character: x~2~
+
+Lists may be unordered
+
+* Item 1
+* Item 2
+
+Or ordered
+
+1. Item 1
+2. Item 2
+
+
+
+## Making Tables
+
+Tables follow a very simple and intuitive structure.
+
+| Header 1 | Header 2 | Header 3 |
+|----------|----------|----------|
+| a        | b        | c        |
+| 1        | 2        | 3        |
+
+The cells are not required to be equally spaced to get the same result (though it makes your code a little easier to read)
+
+| Header 1 | Header 2 | Header 3 |
+|-|-|-|
+| a | b | c |
+| 1 | 2 | 3 |
+
+And you can adjust the column alignment using colons in the headers
+
+| Header 1 | Header 2 | Header 3 |
+|:---------|:--------:|---------:|
+| a        | b        | c        |
+| left     | center   | right    |
+
+Most of the time, we'll want to produce tables from our analyses, and many packages in `R` provide a mechanism to turn analyses into markdown tables for you.  You may find that you don't need to generate a lot of tables on your own.

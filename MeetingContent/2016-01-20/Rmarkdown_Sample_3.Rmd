@@ -1,0 +1,11 @@
+---
+title: "Code Chunks"
+author: "EKU R Users Group"
+date: "January 20, 2016"
+output:
+  word_document: null
+  html_document:
+    toc: yes
+---
+
+Now, if all we wanted to do was 
