@@ -1,8 +1,9 @@
 #* Install qcc, if needed
-if (!"qcc" %in% installed.packages())
-{
-  install.packages("qcc")
-}
+if (!"qcc" %in% installed.packages()) install.packages("qcc")
+if (!"dplyr" %in% installed.packages()) install.packages("dplyr")
+if (!"tidyr" %in% installed.packages()) install.packages("tidyr")
+if (!"magrittr" %in% installed.packages()) install.packages("magrittr")
+if (!"ggplot2" %in% installed.packages()) install.packages("ggplot2")
 
 library(qcc)
 library(dplyr)

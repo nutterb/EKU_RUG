@@ -2,6 +2,7 @@ gaugeRR <- function(fit, nrep)
 {
   require(dplyr)
   require(tidyr)
+  require(broom)
   
   #* A vectorized form of `grepl`
   #* Returns TRUE when any of the patterns are found in `x`
@@ -27,6 +28,8 @@ gaugeRR <- function(fit, nrep)
   }
     
   mse <- tail(anova(fit)[, 3], 1)
+  
+  tidy_fit <- tidy(anova(fit))
   
   
   attributes(terms(fit))[["factors"]][-1, ] %>%
@@ -56,7 +59,7 @@ gaugeRR <- function(fit, nrep)
     select(-in_interaction) %>%
     left_join(
       .,
-      broom::tidy(fit)[, c("term", "meansq", "df")],
+      tidy_fit[, c("term", "meansq", "df")],
       by = c("term" = "term")
     ) %>%
     mutate(
@@ -92,7 +95,7 @@ gaugeRR <- function(fit, nrep)
     select(variable, subtract_from_main, in_denom) %>%
     left_join(
       .,
-      tidy(fit),
+      tidy_fit,
       by = c("variable" = "term")
     ) %>%
     summarise(
