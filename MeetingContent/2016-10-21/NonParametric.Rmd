@@ -1,0 +1,346 @@
+---
+title: 'Non-parametric Analysis'
+output: 
+  slidy_presentation:
+    css: "C:/Users/Nutter/Documents/R/win-library/3.2/rmarkdown/rmarkdown/templates/html_vignette/resources/vignette.css"
+---
+
+## Packages in this presentation
+```{r, warning = FALSE, message = FALSE}
+library(broom)
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+library(magrittr)
+library(quantreg)
+library(reshape2)
+library(stringr)
+library(tidyr)
+```
+## What is it?  
+
+Nonparametric methods are procedures whose validity does not depend on rigid assumptions. (Daniel, Applied Nonparametric Statistics, 1990)
+
+The assumptions of such procedures may be as general as:
+
+* The data are nominal
+* The data are ordinal
+
+Often times, one of these is the primary assumption.
+
+
+## Why use it?
+
+* Sample sizes may be too small to confirm approximate normality
+* Sample sizes may be too small to apply central limit theorem
+* Research question does not involve sample means
+* Not interested in evaluating assumptions
+
+## So how different is it?
+
+| Parametric Test                  | Non Parametric Test |
+|----------------------------------|---------------------|
+| Mean (Centrality statistic)      | Median (Centrality statistic) | 
+| Variance (dispersion statistic)  | (dispersion often not quantified)
+| One sample z-test of proportions | Binomial Test | 
+| Two Sample z-test of proportions | Chi-square / Fisher's Test | 
+| One sample t-test                | Sign Test, Wilcoxon's Signed Rank Test (sort of) |
+| Two sample t-test                | Wilcoxon's Rank Sum Test (sort of) AKA Mann-Whitney |
+| F Test of Variances              | Ansari Bradley Test | 
+| One way ANOVA                    | Kruskal-Wallis Analysis of Ranks | 
+| Two way ANOVA                    | Friedman's Test | 
+| Pearson's correlation            | Spearmans' correlation / Kendall's tau |
+| Linear Regression                | Quantile Regression |
+
+In short--not very!
+
+## Approaching Non-parametric analysis
+
+Traditional statistics courses focus on parametric methods, and we often end up loooking toward non-parametric procedures as a last resort.
+
+1. Collect sample
+2. Exploratory Data Analysis
+3. Check assumptions of parametric analysis
+4. Use Non-parametric if you have to.
+
+## Approaching Non-parametric analysis (Example)
+
+```{r}
+# 1. Collect sample
+Ex1 <- data.frame(group = rep(c("X", "Y"), times = c(17, 10)),
+                  subject = c(1:17, 1:10),
+                  score = c(11.9, 11.7, 9.5, 9.4, 8.7, 8.2, 7.7,
+                            7.4, 7.4, 7.1, 6.9, 6.8, 6.3, 
+                            5.0, 4.2, 4.1, 2.2, 6.6, 5.8, 5.4, 
+                            5.1, 5.0, 4.3, 3.9, 3.3, 2.4, 1.7))
+
+#2. Exploratory Data Analysis
+Ex1 %>%
+  group_by(group) %>%
+  summarise(mean = mean(score),
+            median = median(score),
+            sd = sd(score),
+            range_sd = diff(range(score)) / 4,
+            range = diff(range(score)),
+            min = min(score),
+            p25 = quantile(score, probs = 0.25),
+            p75 = quantile(score, probs = 0.75),
+            max = max(score))
+
+#2. Check assumptions for parametric analysis
+ggplot(data = Ex1,
+       mapping = aes(x = score)) + 
+  geom_histogram(color = "white") + 
+  facet_grid(group ~ .)
+
+ggplot(data = Ex1,
+       mapping = aes(x = group,
+                     y = score)) + 
+  geom_boxplot()
+
+ggplot(data = Ex1,
+       mapping = aes(sample = score,
+                     colour = group)) + 
+  stat_qq()
+```
+
+## Approaching Non-parametric analysis (revisited)
+
+Traditional statistics courses focus on parametric methods, and we often end up loooking toward non-parametric procedures as a last resort.
+
+1. Collect sample
+2. Exploratory Data Analysis
+3. Check assumptions of parametric analysis
+4. Use Non-parametric if you have to.
+
+## Approaching Non-parametric analysis (revisited)
+
+Traditional statistics courses focus on parametric methods, and we often end up loooking toward non-parametric procedures as a last resort.
+
+1. Collect sample
+2. Exploratory Data Analysis
+3. Check assumptions of parametric analysis
+4. Use Non-parametric if you have to.
+
+<font color = 'red'> This is the wrong way to think about non-parametric methods </font>
+
+## Approaching Non-parametric analysis (corrected)
+
+1. Collect sample
+2. Exploratory Data Analysis
+3. Is there any reason _not_ to use non-parametric methods?
+4. Check assumptions of parametric analysis
+5. Use parametric methods if it benefits you
+
+## Comparing the Results
+
+```{r}
+t.test(score ~ group, data = Ex1) %>%
+tidy()
+
+wilcox.test(score ~ group, data = Ex1) %>%
+tidy()
+```
+
+## Interpreting the results
+```{r}
+t.test(score ~ group, data = Ex1) %>%
+tidy()
+```
+
+There is evidence to suggest that the mean response in Group X is larger than the mean response in Group Y.
+
+```{r}
+wilcox.test(score ~ group, data = Ex1) %>%
+tidy()
+```
+
+#### Wrong (Usually): 
+There is evidence to suggest that the median response in Group X is larger than the median response in Group Y.
+
+(This only true when the X and Y distributions have the same shape, better to just avoid saying this)
+
+#### Correct (always):
+There is evidence to suggest that the response in Group X is typically larger than the response in Group Y.
+
+
+## Example: Test of one centrality parameter
+
+```{r}
+Ex2 <- data.frame(subject = 1:11,
+                  time = c(1.80, 3.30, 5.65, 2.25, 2.50, 3.50, 2.75,
+                           3.25, 3.10, 2.70, 3.00))
+```
+
+$$H_0: Center = 3.5$$
+$$H_a: Center \neq 3.5$$
+
+#### Exploratory Data Analysis
+```{r}
+Ex2 %>%
+  summarise(mean = mean(time),
+            median = median(time),
+            sd = sd(time),
+            range_sd = diff(range(time)) / 4,
+            range = diff(range(time)),
+            min = min(time),
+            p25 = quantile(time, probs = 0.25),
+            p75 = quantile(time, probs = 0.75),
+            max = max(time))
+```
+
+```{r}
+t.test(Ex2[["time"]], mu = 3.5) %>% tidy()
+
+mutate(Ex2, high = time >= 3.50) %>%
+  group_by(high) %>%
+  summarise(freq = n())
+binom.test(x = 2, n = 11)
+```
+
+## Correlation
+
+Pearson's correlation coefficient assumptions:
+
+1. sample pairs are independent and identically distributed and 
+2. follow a bivariate normal distribution
+
+## Correlation
+
+Pearson's correlation coefficient assumptions:
+
+1. sample pairs are independent and identically distributed and 
+2. follow a bivariate normal distribution
+
+The second assumption is a _big_ assumption, and there's good reason to believe it doesn't happen a lot.
+
+## Correlation
+
+Spearman's correlation assumptions:
+
+1. X and Y have some bivariate distribution.
+2. X values can be ranked
+3. Y values can be ranked
+
+## Correlation
+
+Let's compare!
+
+```{r}
+Ex3 <- data.frame(Doctor = 1:14,
+                  Systolic = c(141.8, 140.2, 131.8, 132.5, 135.7, 141.2,
+                               143.9, 140.2, 140.8, 131.7, 130.8, 135.6,
+                               143.6, 133.2),
+                  Diastolic = c(89.7, 74.4, 83.5, 77.8, 85.8, 86.5, 89.4,
+                                89.3, 88.0, 82.2, 84.6, 84.4, 86.3, 85.9))
+
+Ex3_tidy <- 
+  Ex3 %>%
+  select(-Doctor) %>%
+  gather(variable, value) 
+
+Ex3_tidy%>%
+  group_by(variable) %>%
+  summarise(mean = mean(value),
+            median = median(value),
+            sd = sd(value),
+            range_sd = diff(range(value)) / 4,
+            range = diff(range(value)),
+            min = min(value),
+            p25 = quantile(value, probs = 0.25),
+            p75 = quantile(value, probs = 0.75),
+            max = max(value))
+
+ggplot(data = Ex3_tidy,
+       mapping = aes(x = value)) + 
+  geom_histogram(color = "white") + 
+  facet_grid(variable ~ .)
+
+ggplot(data = Ex3_tidy,
+       mapping = aes(x = variable,
+                     y = value)) + 
+  geom_boxplot()
+
+ggplot(data = Ex3_tidy,
+       mapping = aes(sample = value,
+                     colour = variable)) + 
+  stat_qq()
+
+# Pearson's
+with(Ex3, cor.test(Systolic, Diastolic)) %>% tidy()
+
+# Spearman's
+with(Ex3, cor.test(Systolic, Diastolic, method = "spearman")) %>% tidy()
+
+```
+
+## Regression
+
+Assumptions
+
+* Constant variance
+* Residuals distributed as $N(0, \sigma^2)$
+
+## Regression
+
+```{r}
+fit <- lm(Diastolic ~ Systolic, data = Ex3)
+
+Ex3 <- Ex3 %>%
+  mutate(resid = residuals(fit),
+         fitted = fitted(fit))
+
+ggplot(data = Ex3,
+       mapping = aes(x = fitted,
+                     y = resid)) + 
+  geom_point()
+
+ggplot(data = Ex3,
+       mapping = aes(sample = resid)) + 
+  stat_qq()
+```
+
+Oh no!  What do we do!?
+
+## Regression
+
+The common practice is to use a transformation.  Perhaps a log transformation.
+
+But this can distort the interpretation.  Instead of interpreting the slope, we have to interpret a log-slope.  
+
+Mathematicians have a hard enough time doing this, let alone the general public.
+
+```{r} 
+fit_log <- lm(log(Diastolic) ~ Systolic, data = Ex3)
+```
+
+## Regression
+
+Use quantile regression instead.
+
+```{r}
+library(quantreg)
+fit_quant <- rq(Diastolic ~ Systolic, data = Ex3)
+```
+
+Compare the results
+
+```{r, warning = FALSE}
+tidy(fit)
+
+tidy(fit_log, exponentiate = TRUE)
+
+tidy(fit_quant)
+```
+## Compare and Contrast
+
+Advantages of going non-parametric
+
+* Less worry about your assumptions
+* They tend to be valid analyses regardless of data distribution
+
+Disadvantages
+
+* Less statistical power (only true when parametric procedure are valid)
+* sometimes the interpretations aren't as straight-forward
+

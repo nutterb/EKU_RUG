@@ -1,0 +1,290 @@
+---
+title: 'Power and Sample Size Estimation'
+output: 
+  slidy_presentation:
+    css: "C:/Users/Nutter/Documents/R/win-library/3.2/rmarkdown/rmarkdown/templates/html_vignette/resources/vignette.css"
+---
+
+## Packages in this presentation
+```{r, warning = FALSE, message = FALSE}
+library(broom)
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+library(magrittr)
+library(quantreg)
+library(reshape2)
+library(stringr)
+library(tidyr)
+
+# A package still in development that adopts a certain 
+# philosophy of how to display the results of a sample size analysis
+# devtools::install_github("nutterb/StudyPlanning")
+library(StudyPlanning)
+```
+
+## Sample Size and Power Estimation
+
+* The terms "Sample Size Analysis" and "Power Analysis" or often used interchangably.
+* The principle at play is quantifying the statistical qualities of a statistical test
+
+## Applications
+
+* Estimating sample size makes for better studies.
+* Understand the number of subjects needed for a desired power.
+* Allows for better financial planning
+* Avoids budget over runs
+* Well designed studies are received more favorably on peer review.
+
+## 30 Goats!
+
+## 30 Goats!
+
+* Each goat costs $10,000
+* Good Sample Planning saved $300,000 before the grant was even submitted
+* Satisfied an moral and ethical imperative to prevent meaningless deaths
+
+## Statistical Power
+
+|  | Fail to Reject $H_0$ | Reject $H_0$ | 
+|---|---------------------|--------------|
+| $H_0$ is true | Correct | Type I Error ($\alpha$) | 
+| $H_0$ is false | Type II Error ($\beta$) | Correct | 
+
+Statistical power is $1 - \beta$.
+
+Thus, high statistical power implies low probability of Type II Error
+
+Well designed studies have both low $\alpha$ and high power
+
+## Study Planning Conventions
+
+* Set $\alpha$ = 0.01, 0.05, 0.10  (most commonly 0.05)
+* Find $n$ where power = 0.80 or 0.90
+
+## Important Caveats
+
+1. Sample size analysis should be done _a priori_ (that's the snobby term for "before the study is conducted")
+
+This means you are using estimates (and sometimes guesses) for the values driving the sample size analysis.
+
+## Important Caveats
+
+1. Sample size analysis should be done _a priori_ (that's the snobby term for "before the study is conducted")
+
+This means you are using estimates (and sometimes guesses) for the values driving the sample size analysis.
+
+2. Sample size analyses are _never_ right!
+
+## Important Caveats
+
+1. Sample size analysis should be done _a priori_ (that's the snobby term for "before the study is conducted")
+
+This means you are using estimates (and sometimes guesses) for the values driving the sample size analysis.
+
+2. Sample size analyses are _never_ right!
+
+But they don't have to be.  They only have to be close.
+
+## Important Caveats
+
+1. Sample size analysis should be done _a priori_ (that's the snobby term for "before the study is conducted")
+
+This means you are using estimates (and sometimes guesses) for the values driving the sample size analysis.
+
+2. Sample size analyses are _never_ right!
+
+But they don't have to be.  They only have to be close.
+
+3. Sample size analyses are only useful if the assumptions and inputs are reasonably accurate.
+
+## Types of Analyses
+
+1. Estimation based (based on the width of a confidence interval)
+2. Hypothesis test based (involves statistical power)
+
+## Estimation based analysis
+
+How many subjects do I need to estimate the population mean to within a profession's salary to within $2,000?
+
+Margin of Error is defined:
+
+$$ E = t_{\alpha, n-1} \cdot \frac{s}{\sqrt{n}} $$
+
+Previous studies have estimated the standard deviation at $s = 6,000$.  Let's use a 95% confidence interval.
+
+```{r}
+E = 2000
+s = 6000
+alpha = 0.05
+```
+
+But notice, $n$ can't be isolated.
+
+The sad reality is that solving for $n$ is usually "very hard" (that's the mathematical term for "pretty much impossible")
+
+## Estimation based analysis
+
+Don't fret!  Computers are great at solving complex algorithms
+
+```{r}
+n_func <- function(n, E, s, alpha)
+{
+  E - qt(1 - alpha / 2, n-1) * s / sqrt(n)
+}
+
+(n <- uniroot(n_func,
+        interval = c(2, 1e8),
+        E = 2000,
+        s = 6000,
+        alpha = 0.05))
+```
+
+We need $n = $ `r n$root` subjects!
+
+## Estimation based analysis
+
+<font color = 'red'>woah, you covered that really fast!?  What was all that code doing!? </font>
+
+## Estimation based analysis
+
+<font color = 'red'>woah, you covered that really fast!?  What was all that code doing!? </font>
+
+Don't worry about it.  You can get tools in R to handle the mechanics for you.
+
+```{r}
+library(StudyPlanning) # under development!
+
+interval_t1(E = 2000, s = 6000, alpha = 0.05)
+```
+
+## Estimation based analysis
+
+Oh, but, by the way....this is the wrong way to do sample size analysis.
+
+## Estimation based analysis
+
+Oh, but, by the way....this is the wrong way to do sample size analysis.
+
+Remember, these estimates are all based on other estimates.  Just how accurate are they?  
+
+Does a single value really give us good information?
+
+## Estimation based analysis
+
+A better way to do this is to evaluate what happens in the neighborhood of your inputs.  
+
+```{r}
+n_est <- interval_t1(E = 1500:2500, s = c(5000, 6000, 7000), alpha = 0.05)
+```
+
+I didn't print those, because there are `r nrow(n_est)` results.  I did 
+every permutation of `E`, `s`, and `alpha`.  Because I want to do this:
+
+## Estimation based analysis
+
+A better way to do this is to evaluate what happens in the neighborhood of your inputs.  
+
+```{r}
+n_est <- interval_t1(E = 1000:3000, s = c(5000, 6000, 7000), alpha = 0.05)
+```
+
+I didn't print those, because there are `r nrow(n_est)` results.  I did 
+every permutation of `E`, `s`, and `alpha`.  Because I want to do this:
+
+```{r}
+library(ggplot2)
+ggplot(data = n_est,
+       mapping = aes(x = E,
+                     y = n_est,
+                     colour = factor(s))) + 
+  geom_line()
+```
+
+## Estimation based analysis
+
+What should the sample size be?
+
+This requires a discussion with the researchers
+
+* What is the cost of each data point?
+* What is the impact if we've under estimated `s`
+* what is the impact if we've over estimated `s`
+* How far off of our target `E` can we be before our results stop being meaningful?
+
+## Hypothesis test based analysis
+
+Research question: Has the mean wage of a population of workers increased by more than $2,000 since a previous study?
+
+Requires a $t$-test. 
+
+Use the same parameters, set power to 80%.
+
+```{r}
+test_t1(delta = 2000, sd = 6000, alpha = 0.05, power = 0.80,
+        two.tail = FALSE)
+```
+
+We require a sample of at least 58 subjects to detect a statistically significant different of $2,000 with at least 80% power.
+
+## Hypothesis test based analysis
+
+But again, this is better.
+
+```{r}
+n_est <- test_t1(delta = 1000:3000, sd = c(5000, 6000, 7000), 
+                 alpha = 0.05,
+                 power = 0.80, two.tail = FALSE)
+
+ggplot(data = n_est,
+       mapping = aes(x = delta,
+                     y = n_est,
+                     colour = factor(sd))) + 
+  geom_line()
+```
+
+## Beware of Bad Practices
+
+> I've already collected 40 samples.  How many more do I need to detect a statistically significant difference?
+
+This doesn't work.  Study Planning calculations assume independence between studies.  Tacking onto an existing study violates that assumption. The best we can do here is estimate the power based on those 40 subjects.
+
+```{r}
+test_t1(delta = 2000, n = 40, sd = 6000, alpha = 0.05, two.tail = FALSE)
+```
+
+## Beware of Bad Practices
+
+> We conducted a sample size analysis and determined 58 subjects were required to detect a statistically significant difference of $2,000 with 80% power.  Our study included a sample of 60 subjects, therefore, our study is well powered.
+
+This is only true **IF** the observed mean difference and observed standard deviation are close to those used in the sample size analysis.
+
+Although _post hoc_ power analyses are generally less-well received than _a prior_ analyses, I like to use them to confirm that my assumptions into the _a prior_ analysis were good.
+
+## Some Fun Power Trivia
+
+The Binomial Test has a really cool power curve.
+
+```{r}
+Chill <- test_binomial(n=20:40, p0=.5, p1=.8, alpha=c(.01, .05), 
+               alternative='right.tailed')
+               
+ ggplot(data = Chill, 
+        mapping = aes(x=n, 
+                      y=power, 
+                      colour=factor(alpha))) + 
+   geom_line()
+```
+
+This saved a few pigs' lives!
+
+## Similar R Resources that are not under development
+
+* power.t.test
+* power.prop.test
+
+* The `pwr` package
+
+Many packages have power and sample size calculation functions.
+
+There is no common paradigm for sample size calculation. (Unfortunately)
