@@ -1,0 +1,41 @@
+---
+title: 'Shiny Applications'
+output: 
+  slidy_presentation
+---
+
+## What is a Shiny Application
+
+A Browser based application that allows the user to submit input to the R session.
+
+The application hosts a collection of objects that produce
+
+* side effects
+* values
+
+
+## Reactivity
+
+The key feature of the shiny appliation is that the components can be **reactive**. That is, the components on the UI will react to what the user
+does.
+
+https://shiny.rstudio.com/articles/reactivity-overview.html
+
+## Inputs and Outputs
+
+* User inputs are stored in the `input` list
+* UI components to show the user are stored in the `output` list
+
+inputs and outputs may be manipulated on the server.
+
+The user interface source code should remain somewhat static.
+
+## Managing Reactivity
+
+* Use `observe` for side effects
+* Use `reactive` for outputs
+
+functions that render UI components are a type of `reactive`
+
+Try to think of `reactive` definitions as recipes.
+

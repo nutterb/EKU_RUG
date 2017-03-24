@@ -38,9 +38,9 @@ options(pixiedust_print_method = "html")
 
 ## Result Emphasis
 
-The concept of _subtly_ drawing attention to the result you want the reader to focus on.
+* The concept of _subtly_ drawing attention to the result you want the reader to focus on.
 
-Please note the differnce between _subtlety_ and <font color = 'red' size = 20pt style = 'font-weight:bold;'><i>SUBTLETY</i></font>
+* Please note the differnce between _subtlety_ and <font color = 'red' size = 20pt style = 'font-weight:bold;'><i>SUBTLETY</i></font>
 
 ## Result Emphasis
 
@@ -144,7 +144,16 @@ fit_tab %>%
            bold = TRUE)
 ```
 
-## Result Emphasis (Violation of Subtlty Principle)
+## Result Emphasis (Violation of Subtlety Principle)
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE}
+fit_tab %>%
+  sprinkle(rows = 2:4,
+           cols = "estimate",
+           bg = "#DDDDDD")
+```
+
+## Result Emphasis (Violation of Subtlety Principle)
 
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
 fit_tab %>%
@@ -153,7 +162,7 @@ fit_tab %>%
            font_size = 24)
 ```
 
-## Result Emphasis (Violation of Subtlty Principle)
+## Result Emphasis (Violation of Subtlety Principle)
 
 ```{r, echo = FALSE, warning = FALSE, message = FALSE}
 fit_tab %>%
